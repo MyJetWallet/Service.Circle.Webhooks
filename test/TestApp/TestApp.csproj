@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Version="2.38.0" />
+    <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Service.Circle.Webhooks.Client\Service.Circle.Webhooks.Client.csproj" />
+    <ProjectReference Include="..\..\src\Service.Circle.Webhooks.Grpc\Service.Circle.Webhooks.Grpc.csproj" />
+  </ItemGroup>
+
+</Project>
