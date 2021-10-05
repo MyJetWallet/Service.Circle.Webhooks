@@ -13,5 +13,11 @@ namespace Service.Circle.Webhooks.Settings
 
         [YamlProperty("CircleWebhooks.ElkLogs")]
         public LogElkSettings ElkLogs { get; set; }
+
+        [YamlProperty("CircleWebhooks.SpotServiceBusHostPort")]
+        public string SpotServiceBusHostPort { get; set; }
+
+        [YamlProperty("CircleWebhooks.CircleSignerGrpcServiceUrl")]
+        public string CircleSignerGrpcServiceUrl { get; set; }
     }
 }

@@ -5,4 +5,8 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MyJetWallet.Circle" Version="1.0.2" />
+  </ItemGroup>
+
 </Project>
