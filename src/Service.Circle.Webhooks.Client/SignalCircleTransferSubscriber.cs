@@ -10,11 +10,11 @@ using SimpleTrading.ServiceBus.CommonUtils.Serializers;
 
 namespace Service.Circle.Webhooks.Client
 {
-    public class SignalBitGoTransferSubscriber : ISubscriber<SignalCircleTransfer>
+    public class SignalCircleTransferSubscriber : ISubscriber<SignalCircleTransfer>
     {
         private readonly List<Func<SignalCircleTransfer, ValueTask>> _list = new List<Func<SignalCircleTransfer, ValueTask>>();
 
-        public SignalBitGoTransferSubscriber(
+        public SignalCircleTransferSubscriber(
             MyServiceBusTcpClient client,
             string queueName,
             TopicQueueType queryType)

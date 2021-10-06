@@ -10,12 +10,12 @@ namespace Service.Circle.Webhooks.Client
 {
     public static class AutofacHelper
     {
-        public static void RegisterSignalBitGoTransferSubscriber(this ContainerBuilder builder,
+        public static void RegisterSignalCircleTransferSubscriber(this ContainerBuilder builder,
             MyServiceBusTcpClient client,
             string queueName,
             TopicQueueType queryType)
         {
-            var subs = new SignalBitGoTransferSubscriber(client, queueName, queryType);
+            var subs = new SignalCircleTransferSubscriber(client, queueName, queryType);
 
             builder
                 .RegisterInstance(subs)
