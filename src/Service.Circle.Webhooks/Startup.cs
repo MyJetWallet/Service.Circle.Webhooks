@@ -5,14 +5,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MyJetWallet.Sdk.GrpcMetrics;
 using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
-using ProtoBuf.Grpc.Server;
 using Service.Circle.Webhooks.Modules;
 using Service.Circle.Webhooks.Services;
-using SimpleTrading.BaseMetrics;
 using SimpleTrading.ServiceStatusReporterConnector;
 
 namespace Service.Circle.Webhooks
@@ -21,11 +18,7 @@ namespace Service.Circle.Webhooks
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCodeFirstGrpc(options =>
-            {
-                options.Interceptors.Add<PrometheusMetricsInterceptor>();
-                options.BindMetricsInterceptors();
-            });
+            services.BindCodeFirstGrpc();
 
             services.AddHostedService<ApplicationLifetimeManager>();
 
@@ -51,13 +44,14 @@ namespace Service.Circle.Webhooks
 
             app.UseEndpoints(endpoints =>
             {
-
                 endpoints.MapGrpcSchemaRegistry();
 
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-                });
+                endpoints.MapGet("/",
+                    async context =>
+                    {
+                        await context.Response.WriteAsync(
+                            "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+                    });
             });
         }
 
