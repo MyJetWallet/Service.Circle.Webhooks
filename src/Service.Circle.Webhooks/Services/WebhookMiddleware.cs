@@ -95,7 +95,7 @@ namespace Service.Circle.Webhooks.Services
                     var message = JsonConvert.DeserializeObject<MessageDto>(dto.Message);
                     if (message != null)
                     {
-                        if (message.NotificationType == "payment")
+                        if (message.NotificationType == "payments")
                         {
                             var (brokerId, clientId, walletId) = ParseDescription(message.Payment.Description);
                             if (brokerId != null)
@@ -104,13 +104,20 @@ namespace Service.Circle.Webhooks.Services
                                     { BrokerId = brokerId, PaymentId = message.Payment.Id });
                                 if (payment.IsSuccess)
                                 {
-                                    await _transferPublisher.PublishAsync(new SignalCircleTransfer
+                                    if (payment.Data.Status == "confirmed")
                                     {
-                                        BrokerId = brokerId,
-                                        ClientId = clientId,
-                                        WalletId = walletId,
-                                        PaymentInfo = payment.Data
-                                    });
+                                        await _transferPublisher.PublishAsync(new SignalCircleTransfer
+                                        {
+                                            BrokerId = brokerId,
+                                            ClientId = clientId,
+                                            WalletId = walletId,
+                                            PaymentInfo = payment.Data
+                                        });
+                                    }
+                                    else
+                                    {
+                                        _logger.LogInformation("Payment status {status} is not confirmed, skipping", message.Payment.Status);   
+                                    }
                                 }
                                 else
                                 {
