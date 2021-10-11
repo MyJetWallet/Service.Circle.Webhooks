@@ -104,7 +104,7 @@ namespace Service.Circle.Webhooks.Services
                                     { BrokerId = brokerId, PaymentId = message.Payment.Id });
                                 if (payment.IsSuccess)
                                 {
-                                    if (payment.Data.Status == "confirmed")
+                                    if (payment.Data.Status == PaymentStatus.Confirmed)
                                     {
                                         await _transferPublisher.PublishAsync(new SignalCircleTransfer
                                         {
