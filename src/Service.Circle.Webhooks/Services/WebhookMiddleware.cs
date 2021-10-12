@@ -95,7 +95,7 @@ namespace Service.Circle.Webhooks.Services
                     var message = JsonConvert.DeserializeObject<MessageDto>(dto.Message);
                     if (message != null)
                     {
-                        if (message.NotificationType == "payments")
+                        if (message is  { NotificationType: "payments" })
                         {
                             var (brokerId, clientId, walletId) = ParseDescription(message.Payment.Description);
                             if (brokerId != null)
