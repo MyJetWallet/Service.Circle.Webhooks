@@ -104,20 +104,13 @@ namespace Service.Circle.Webhooks.Services
                                     { BrokerId = brokerId, PaymentId = message.Payment.Id });
                                 if (payment.IsSuccess)
                                 {
-                                    if (payment.Data.Status == PaymentStatus.Confirmed)
+                                    await _transferPublisher.PublishAsync(new SignalCircleTransfer
                                     {
-                                        await _transferPublisher.PublishAsync(new SignalCircleTransfer
-                                        {
-                                            BrokerId = brokerId,
-                                            ClientId = clientId,
-                                            WalletId = walletId,
-                                            PaymentInfo = payment.Data
-                                        });
-                                    }
-                                    else
-                                    {
-                                        _logger.LogInformation("Payment status {status} is not confirmed, skipping", message.Payment.Status);   
-                                    }
+                                        BrokerId = brokerId,
+                                        ClientId = clientId,
+                                        WalletId = walletId,
+                                        PaymentInfo = payment.Data
+                                    });
                                 }
                                 else
                                 {
