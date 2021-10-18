@@ -12,8 +12,6 @@ namespace Service.Circle.Webhooks.Modules
         {
             var serviceBusClient = builder.RegisterMyServiceBusTcpClient(
                 Program.ReloadedSettings(e => e.SpotServiceBusHostPort),
-                ApplicationEnvironment.HostName ??
-                $"{ApplicationEnvironment.AppName}:{ApplicationEnvironment.AppVersion}",
                 Program.LogFactory);
 
             builder

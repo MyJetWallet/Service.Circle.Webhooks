@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Circle.Models.Payments;
 using MyJetWallet.Sdk.Service;
+using MyJetWallet.Sdk.ServiceBus;
 using Newtonsoft.Json;
 using Service.Circle.Signer.Grpc;
 using Service.Circle.Signer.Grpc.Models;
@@ -24,7 +25,7 @@ namespace Service.Circle.Webhooks.Services
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<WebhookMiddleware> _logger;
-        private readonly IPublisher<SignalCircleTransfer> _transferPublisher;
+        private readonly IServiceBusPublisher<SignalCircleTransfer> _transferPublisher;
         private readonly ICirclePaymentsService _circlePaymentsService;
 
         public const string NotificationsPath = "/circle/webhook/notification";
@@ -33,7 +34,7 @@ namespace Service.Circle.Webhooks.Services
         /// Middleware that handles all unhandled exceptions and logs them as errors.
         /// </summary>
         public WebhookMiddleware(RequestDelegate next, ILogger<WebhookMiddleware> logger,
-            ICirclePaymentsService circlePaymentsService, IPublisher<SignalCircleTransfer> transferPublisher)
+            ICirclePaymentsService circlePaymentsService, IServiceBusPublisher<SignalCircleTransfer> transferPublisher)
         {
             _next = next;
             _logger = logger;
