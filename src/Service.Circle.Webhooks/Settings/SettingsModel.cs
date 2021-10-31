@@ -17,7 +17,19 @@ namespace Service.Circle.Webhooks.Settings
         [YamlProperty("CircleWebhooks.SpotServiceBusHostPort")]
         public string SpotServiceBusHostPort { get; set; }
 
+        [YamlProperty("CircleWebhooks.MyNoSqlReaderHostPort")]
+        public string MyNoSqlReaderHostPort { get; set; }
+
+        [YamlProperty("CircleWebhooks.BitgoDepositServiceGrpcUrl")]
+        public string BitgoDepositServiceGrpcUrl { get; set; }
+
         [YamlProperty("CircleWebhooks.CircleSignerGrpcServiceUrl")]
         public string CircleSignerGrpcServiceUrl { get; set; }
+
+        [YamlProperty("CircleWebhooks.WebHooksCheckerIntervalMSec")]
+        public long WebHooksCheckerIntervalMSec { get; set; }
+
+        [YamlProperty("CircleWebhooks.WebhooksUrl")]
+        public string WebhooksUrl { get; set; }
     }
 }
