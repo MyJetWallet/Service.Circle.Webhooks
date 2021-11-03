@@ -147,12 +147,14 @@ namespace Service.Circle.Webhooks.Services
                                     return;
                                 }
 
+                                var chain = message.Transfer.Source.Type == "wallet" ? message.Transfer.Destination.Chain : message
+                                    .Transfer.Source.Chain;
                                 var blockchain = _circleBlockchainMapper.CircleBlockchainToBlockchain("jetwallet",
-                                    message.Transfer.Source.Chain);
+                                    chain);
                                 if (string.IsNullOrEmpty(blockchain?.Blockchain))
                                 {
                                     _logger.LogError("Unknown circle blockchain {blockchain}",
-                                        message.Transfer.Source.Chain);
+                                        chain);
                                     return;
                                 }
 
@@ -166,7 +168,7 @@ namespace Service.Circle.Webhooks.Services
                                 if (addressInfo.Address == null)
                                 {
                                     _logger.LogError("Unknown circle address {blockchain} : {address}",
-                                        message.Transfer.Source.Chain, message.Transfer.Destination.Address);
+                                        chain, message.Transfer.Destination.Address);
                                     return;
                                 }
 
@@ -174,12 +176,6 @@ namespace Service.Circle.Webhooks.Services
                                     { BrokerId = addressInfo.Address.BrokerId, PaymentId = message.Transfer.Id });
                                 if (payment.IsSuccess)
                                 {
-                                    if (payment.Data.Source.Type != "blockchain")
-                                    {
-                                        _logger.LogError("Not supported source type {type}", message.Transfer.Source.Type);
-                                        return;
-                                    }
-                                
                                     await _transferPublisher.PublishAsync(new SignalCircleTransfer
                                     {
                                         BrokerId = addressInfo.Address.BrokerId,
