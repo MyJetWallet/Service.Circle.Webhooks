@@ -137,9 +137,6 @@ namespace Service.Circle.Webhooks.Services
 
                                 break;
                             }
-                            case { NotificationType: "transfers" } when message.Transfer.Source.Type != "blockchain":
-                                _logger.LogInformation("Not supported source type {type}", message.Transfer.Source.Type);
-                                return;
                             case { NotificationType: "transfers" }:
                             {
                                 var asset = _circleAssetMapper.CircleAssetToAsset("jetwallet",
