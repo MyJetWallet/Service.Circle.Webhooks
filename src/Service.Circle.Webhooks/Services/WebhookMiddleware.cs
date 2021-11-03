@@ -15,10 +15,7 @@ using Service.Circle.Signer.Grpc.Models;
 using Service.Circle.Webhooks.Domain.Models;
 
 // ReSharper disable InconsistentLogPropertyNaming
-
 // ReSharper disable TemplateIsNotCompileTimeConstantProblem
-
-
 // ReSharper disable UnusedMember.Global
 
 namespace Service.Circle.Webhooks.Services
@@ -117,8 +114,9 @@ namespace Service.Circle.Webhooks.Services
                                 var (brokerId, clientId, walletId) = ParseDescription(message.Payment.Description);
                                 if (brokerId != null)
                                 {
-                                    var payment = await _circlePaymentsService.GetCirclePaymentInfo(new GetPaymentRequest
-                                        { BrokerId = brokerId, PaymentId = message.Payment.Id });
+                                    var payment = await _circlePaymentsService.GetCirclePaymentInfo(
+                                        new GetPaymentRequest
+                                            { BrokerId = brokerId, PaymentId = message.Payment.Id });
                                     if (payment.IsSuccess)
                                     {
                                         await _transferPublisher.PublishAsync(new SignalCircleTransfer
@@ -137,8 +135,9 @@ namespace Service.Circle.Webhooks.Services
 
                                 break;
                             }
-                            case { NotificationType: "transfers" }:
+                            case { NotificationType: "transfers" } when message.Transfer.Source.Type == "blockchain":
                             {
+                                //deposits
                                 var asset = _circleAssetMapper.CircleAssetToAsset("jetwallet",
                                     message.Transfer.Amount.Currency);
                                 if (string.IsNullOrEmpty(asset?.AssetSymbol))
@@ -147,8 +146,10 @@ namespace Service.Circle.Webhooks.Services
                                     return;
                                 }
 
-                                var chain = message.Transfer.Source.Type == "wallet" ? message.Transfer.Destination.Chain : message
-                                    .Transfer.Source.Chain;
+                                var chain = message.Transfer.Source.Type == "wallet"
+                                    ? message.Transfer.Destination.Chain
+                                    : message
+                                        .Transfer.Source.Chain;
                                 var blockchain = _circleBlockchainMapper.CircleBlockchainToBlockchain("jetwallet",
                                     chain);
                                 if (string.IsNullOrEmpty(blockchain?.Blockchain))
@@ -181,6 +182,25 @@ namespace Service.Circle.Webhooks.Services
                                         BrokerId = addressInfo.Address.BrokerId,
                                         ClientId = addressInfo.Address.ClientId,
                                         WalletId = addressInfo.Address.WalletId,
+                                        PaymentInfo = payment.Data
+                                    });
+                                }
+                                else
+                                {
+                                    _logger.LogError("Unable to get payment info {id}", message.Payment.Id);
+                                }
+
+                                break;
+                            }
+                            case { NotificationType: "transfers" } when message.Transfer.Source.Type == "wallet":
+                            {
+                                //withdrawals
+                                var payment = await _circlePaymentsService.GetCircleTransferInfo(new GetPaymentRequest
+                                    { BrokerId = "jetwallet", PaymentId = message.Transfer.Id });
+                                if (payment.IsSuccess)
+                                {
+                                    await _transferPublisher.PublishAsync(new SignalCircleTransfer
+                                    {
                                         PaymentInfo = payment.Data
                                     });
                                 }
