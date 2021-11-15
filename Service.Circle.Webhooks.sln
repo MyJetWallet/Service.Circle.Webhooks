@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		.github\workflows\release-api-client.yml = .github\workflows\release-api-client.yml
 		.github\workflows\release-service.yml = .github\workflows\release-service.yml
+		.github\workflows\update_nuget.yaml = .github\workflows\update_nuget.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service.Circle.Webhooks.Domain", "src\Service.Circle.Webhooks.Domain\Service.Circle.Webhooks.Domain.csproj", "{5CFE74A4-CDBB-4E2D-9C0A-9CEF20DCB38B}"

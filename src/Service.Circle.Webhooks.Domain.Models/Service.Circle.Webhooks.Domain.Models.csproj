@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MyJetWallet.Circle" Version="1.0.7" />
-    <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.0.5" />
+    <PackageReference Include="MyJetWallet.Circle" Version="1.1.0" />
+    <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.1.0" />
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ namespace TestApp
     {
         static async Task Main(string[] args)
         {
+            await Task.Delay(10);
             GrpcClientFactory.AllowUnencryptedHttp2 = true;
 
             Console.Write("Press enter to start");
