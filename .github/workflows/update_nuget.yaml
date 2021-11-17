@@ -18,7 +18,12 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.*
-      
+    
+    - name: Setup .NET Core 5
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.101
+    
     - name: install dotnet-outdated-tool
       run: dotnet tool install --global dotnet-outdated-tool
       
