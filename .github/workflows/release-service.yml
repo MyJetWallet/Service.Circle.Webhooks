@@ -58,7 +58,7 @@ jobs:
         username: ${{ secrets.ST_DOCKER_USER }}
         password: ${{ secrets.ST_DOCKER_PASSWORD }}
         path: ./publish-api
-        registry: simpletrading.azurecr.io
+        registry: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
         repository: spot/myjetwallet.service.circle.webhooks
         tag_with_ref: true
         build_args: app_version=myjetwallet.service.circle.webhooks:${{ steps.extract_branch.outputs.branch }},app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
