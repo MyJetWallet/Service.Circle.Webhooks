@@ -169,6 +169,7 @@ namespace Service.Circle.Webhooks.Services
                                             new AddressAndTag()
                                             {
                                                 Address = message.Transfer.Destination.Address,
+                                                Tag = null
                                             }
                                         }
                                     });
