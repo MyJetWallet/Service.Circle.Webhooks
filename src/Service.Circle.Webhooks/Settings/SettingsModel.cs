@@ -31,5 +31,8 @@ namespace Service.Circle.Webhooks.Settings
 
         [YamlProperty("CircleWebhooks.WebhooksUrl")]
         public string WebhooksUrl { get; set; }
+
+        [YamlProperty("CircleWebhooks.BlockchainWalletsGrpcServiceUrl")]
+        public string BlockchainWalletsGrpcServiceUrl { get; internal set; }
     }
 }
