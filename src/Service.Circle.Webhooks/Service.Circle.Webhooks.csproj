@@ -12,7 +12,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="MyJetWallet.Circle" Version="1.1.0" />
+    <PackageReference Include="MyJetWallet.Circle" Version="1.2.1" />
     <PackageReference Include="MyJetWallet.Circle.Settings" Version="1.3.0" />
     <PackageReference Include="MyJetWallet.Fireblocks" Version="1.3.1" />
     <PackageReference Include="MyJetWallet.Sdk.GrpcMetrics" Version="2.0.4" />
@@ -22,7 +22,7 @@
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.2" />
     <PackageReference Include="MyJetWallet.Service.Bitgo.DepositDetector.Client" Version="2.2.1" />
     <PackageReference Include="MyJetWallet.Service.Blockchain.Wallets.Client" Version="1.4.0" />
-    <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.1.0" />
+    <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.2" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
