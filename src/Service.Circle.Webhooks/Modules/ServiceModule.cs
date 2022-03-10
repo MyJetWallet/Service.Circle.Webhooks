@@ -6,7 +6,9 @@ using MyJetWallet.Sdk.ServiceBus;
 using Service.Bitgo.DepositDetector.Client;
 using Service.Blockchain.Wallets.Client;
 using Service.Circle.Signer.Client;
+using Service.Circle.Wallets.Client;
 using Service.Circle.Webhooks.Domain.Models;
+using Service.ClientWallets.Client;
 
 namespace Service.Circle.Webhooks.Modules
 {
@@ -28,6 +30,8 @@ namespace Service.Circle.Webhooks.Modules
             builder.RegisterBitgoDepositAddressClient(Program.Settings.BitgoDepositServiceGrpcUrl, myNoSqlClient);
             builder.RegisterCircleSettingsReader(myNoSqlClient);
             builder.RegisterBlockchainWalletsClient(Program.Settings.BlockchainWalletsGrpcServiceUrl, myNoSqlClient);
+            builder.RegisterCircleWalletsClient(myNoSqlClient, Program.Settings.CircleWalletsGrpcServiceUrl);
+            builder.RegisterClientWalletsClientsWithoutCache(Program.Settings.ClientWalletsGrpcServiceUrl);
         }
     }
 }

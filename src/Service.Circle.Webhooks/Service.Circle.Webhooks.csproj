@@ -6,6 +6,14 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.43.0" />
@@ -20,9 +28,12 @@
     <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="2.1.2" />
     <PackageReference Include="MyJetWallet.Sdk.Service" Version="2.1.7" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.2" />
+    <PackageReference Include="MyJetWallet.Sdk.WalletApi" Version="2.1.9" />
     <PackageReference Include="MyJetWallet.Service.Bitgo.DepositDetector.Client" Version="2.2.1" />
     <PackageReference Include="MyJetWallet.Service.Blockchain.Wallets.Client" Version="1.5.0" />
     <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.4.0" />
+    <PackageReference Include="MyJetWallet.Service.Circle.Wallets.Client" Version="2.4.0" />
+    <PackageReference Include="MyJetWallet.Service.ClientWallets.Client" Version="1.4.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />

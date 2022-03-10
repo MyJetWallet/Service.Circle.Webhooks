@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Circle.Models.Payments;
 using MyJetWallet.Circle.Settings.Services;
+using MyJetWallet.Domain;
 using MyJetWallet.Sdk.Service;
 using MyJetWallet.Sdk.ServiceBus;
 using Newtonsoft.Json;
@@ -15,6 +16,7 @@ using Service.Blockchain.Wallets.Grpc;
 using Service.Circle.Signer.Grpc;
 using Service.Circle.Signer.Grpc.Models;
 using Service.Circle.Webhooks.Domain.Models;
+using Service.ClientWallets.Grpc;
 using static Service.Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest;
 
 // ReSharper disable InconsistentLogPropertyNaming
@@ -32,7 +34,8 @@ namespace Service.Circle.Webhooks.Services
         private readonly ICircleBlockchainMapper _circleBlockchainMapper;
         private readonly ICircleAssetMapper _circleAssetMapper;
         private readonly IWalletService _walletService;
-
+        private readonly Wallets.Grpc.ICircleBankAccountsService _circleBankAccountsService;
+        private readonly IClientWalletService _clientWalletService;
         public const string NotificationsPath = "/circle/webhook/notification";
 
         /// <summary>
@@ -45,7 +48,9 @@ namespace Service.Circle.Webhooks.Services
             IServiceBusPublisher<SignalCircleTransfer> transferPublisher,
             ICircleBlockchainMapper circleBlockchainMapper,
             ICircleAssetMapper circleAssetMapper,
-            IWalletService walletService)
+            IWalletService walletService,
+            Wallets.Grpc.ICircleBankAccountsService circleBankAccountsService,
+            IClientWalletService clientWalletService)
         {
             _next = next;
             _logger = logger;
@@ -54,6 +59,8 @@ namespace Service.Circle.Webhooks.Services
             _circleBlockchainMapper = circleBlockchainMapper;
             _circleAssetMapper = circleAssetMapper;
             _walletService = walletService;
+            _circleBankAccountsService = circleBankAccountsService;
+            _clientWalletService = clientWalletService;
         }
 
         /// <summary>
@@ -115,7 +122,50 @@ namespace Service.Circle.Webhooks.Services
                             case { NotificationType: "payments" }:
                                 {
                                     var (brokerId, clientId, walletId) = ParseDescription(message.Payment.Description);
-                                    if (brokerId != null)
+
+                                    if (message.Payment.Source.Type == "wire" &&
+                                        message.Payment.Status == PaymentStatus.Paid)
+                                    {
+                                        var payment = await _circlePaymentsService.GetCirclePaymentInfo(
+                                            new GetPaymentRequest
+                                            { BrokerId = DomainConstants.DefaultBroker, PaymentId = message.Payment.Id });
+
+                                        if (payment.IsSuccess)
+                                        {
+                                            var bankAccount = await _circleBankAccountsService.GetCircleBankAccountByIdOnly(
+                                            new Wallets.Grpc.Models.BankAccounts.GetClientBankAccountByIdRequest
+                                            {
+                                                BankAccountId = payment.Data.Source.Id,
+                                            });
+
+                                            var list = await _clientWalletService.GetWalletsByClient(new ()
+                                            {
+                                                ClientId = bankAccount.Data.ClientId,
+                                                BrokerId = bankAccount.Data.BrokerId,
+                                            });
+
+                                            var defaultWallet = list.Wallets.FirstOrDefault(e => e.IsDefault) ?? list.Wallets.FirstOrDefault();
+
+                                            if (defaultWallet == null)
+                                            {
+                                                _logger.LogError("Cannot found default wallet for Broker/Client: {brokerId}/{clientId}", bankAccount.Data.BrokerId, bankAccount.Data.ClientId);
+                                                throw new Exception($"Cannot found default wallet for Broker/Client: {bankAccount.Data.BrokerId}/{bankAccount.Data.ClientId}");
+                                            }
+
+                                            await _transferPublisher.PublishAsync(new SignalCircleTransfer
+                                            {
+                                                BrokerId = bankAccount.Data.BrokerId,
+                                                ClientId = bankAccount.Data.ClientId,
+                                                WalletId = defaultWallet.WalletId,
+                                                PaymentInfo = payment.Data
+                                            });
+                                        }
+                                        else
+                                        {
+                                            _logger.LogError("Unable to get payment info {id}", message.Payment.Id);
+                                        }
+                                    }
+                                    else if (brokerId != null)
                                     {
                                         var payment = await _circlePaymentsService.GetCirclePaymentInfo(
                                             new GetPaymentRequest
