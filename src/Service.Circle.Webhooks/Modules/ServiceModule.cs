@@ -9,6 +9,7 @@ using Service.Circle.Signer.Client;
 using Service.Circle.Wallets.Client;
 using Service.Circle.Webhook.ServiceBus;
 using Service.Circle.Webhooks.Domain.Models;
+using Service.Circle.Webhooks.Subscribers;
 using Service.ClientWallets.Client;
 
 namespace Service.Circle.Webhooks.Modules
@@ -31,9 +32,11 @@ namespace Service.Circle.Webhooks.Modules
                    Topics.CircleWebhookInternalTopic, 
                    true);
 
-            builder.RegisterMyServiceBusSubscriberSingle<WebhookQueueItem>(serviceBusClient,
+            builder.RegisterMyServiceBusSubscriberSingle<WebhookQueueItem>(
+                serviceBusClient,
                 Topics.CircleWebhookInternalTopic,
-                "service-circle-webhook", MyServiceBus.Abstractions.TopicQueueType.Permanent);
+                "service-circle-webhook", 
+                MyServiceBus.Abstractions.TopicQueueType.Permanent);
 
             var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
             
@@ -43,6 +46,11 @@ namespace Service.Circle.Webhooks.Modules
             builder.RegisterBlockchainWalletsClient(Program.Settings.BlockchainWalletsGrpcServiceUrl, myNoSqlClient);
             builder.RegisterCircleWalletsClient(myNoSqlClient, Program.Settings.CircleWalletsGrpcServiceUrl);
             builder.RegisterClientWalletsClientsWithoutCache(Program.Settings.ClientWalletsGrpcServiceUrl);
+
+            builder
+                .RegisterType<CircleWebhookInternalSubscriber>()
+                .SingleInstance()
+                .AutoActivate();
         }
     }
 }

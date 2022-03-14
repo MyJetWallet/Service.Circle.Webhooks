@@ -30,13 +30,6 @@ namespace Service.Circle.Webhooks.Services
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<WebhookMiddleware> _logger;
-        private readonly IServiceBusPublisher<SignalCircleTransfer> _transferPublisher;
-        private readonly ICirclePaymentsService _circlePaymentsService;
-        private readonly ICircleBlockchainMapper _circleBlockchainMapper;
-        private readonly ICircleAssetMapper _circleAssetMapper;
-        private readonly IWalletService _walletService;
-        private readonly Wallets.Grpc.ICircleBankAccountsService _circleBankAccountsService;
-        private readonly IClientWalletService _clientWalletService;
         private readonly IServiceBusPublisher<WebhookQueueItem> _webhhookPublisher;
         public const string NotificationsPath = "/circle/webhook/notification";
 
@@ -46,24 +39,10 @@ namespace Service.Circle.Webhooks.Services
         public WebhookMiddleware(
             RequestDelegate next,
             ILogger<WebhookMiddleware> logger,
-            ICirclePaymentsService circlePaymentsService,
-            IServiceBusPublisher<SignalCircleTransfer> transferPublisher,
-            ICircleBlockchainMapper circleBlockchainMapper,
-            ICircleAssetMapper circleAssetMapper,
-            IWalletService walletService,
-            Wallets.Grpc.ICircleBankAccountsService circleBankAccountsService,
-            IClientWalletService clientWalletService,
             IServiceBusPublisher<WebhookQueueItem> webhhookPublisher)
         {
             _next = next;
             _logger = logger;
-            _circlePaymentsService = circlePaymentsService;
-            _transferPublisher = transferPublisher;
-            _circleBlockchainMapper = circleBlockchainMapper;
-            _circleAssetMapper = circleAssetMapper;
-            _walletService = walletService;
-            _circleBankAccountsService = circleBankAccountsService;
-            _clientWalletService = clientWalletService;
             _webhhookPublisher = webhhookPublisher;
         }
 
@@ -115,6 +94,7 @@ namespace Service.Circle.Webhooks.Services
                 body.AddToActivityAsTag("webhook-body");
 
                 _logger.LogInformation("Message from Circle: {message}", body);
+
                 await _webhhookPublisher.PublishAsync(new WebhookQueueItem()
                 {
                     Data = body
