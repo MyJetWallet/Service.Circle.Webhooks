@@ -15,6 +15,7 @@ using Service.Bitgo.DepositDetector.Grpc;
 using Service.Blockchain.Wallets.Grpc;
 using Service.Circle.Signer.Grpc;
 using Service.Circle.Signer.Grpc.Models;
+using Service.Circle.Webhook.ServiceBus;
 using Service.Circle.Webhooks.Domain.Models;
 using Service.ClientWallets.Grpc;
 using static Service.Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest;
@@ -36,6 +37,7 @@ namespace Service.Circle.Webhooks.Services
         private readonly IWalletService _walletService;
         private readonly Wallets.Grpc.ICircleBankAccountsService _circleBankAccountsService;
         private readonly IClientWalletService _clientWalletService;
+        private readonly IServiceBusPublisher<WebhookQueueItem> _webhhookPublisher;
         public const string NotificationsPath = "/circle/webhook/notification";
 
         /// <summary>
@@ -50,7 +52,8 @@ namespace Service.Circle.Webhooks.Services
             ICircleAssetMapper circleAssetMapper,
             IWalletService walletService,
             Wallets.Grpc.ICircleBankAccountsService circleBankAccountsService,
-            IClientWalletService clientWalletService)
+            IClientWalletService clientWalletService,
+            IServiceBusPublisher<WebhookQueueItem> webhhookPublisher)
         {
             _next = next;
             _logger = logger;
@@ -61,6 +64,7 @@ namespace Service.Circle.Webhooks.Services
             _walletService = walletService;
             _circleBankAccountsService = circleBankAccountsService;
             _clientWalletService = clientWalletService;
+            _webhhookPublisher = webhhookPublisher;
         }
 
         /// <summary>
@@ -107,207 +111,17 @@ namespace Service.Circle.Webhooks.Services
             {
                 using var activity = MyTelemetry.StartActivity("Receive transfer webhook");
 
-                var dto = JsonConvert.DeserializeObject<NotificationDto>(body);
-
                 path.ToString().AddToActivityAsTag("webhook-path");
                 body.AddToActivityAsTag("webhook-body");
 
-                if (dto is { Type: "Notification" })
+                _logger.LogInformation("Message from Circle: {message}", body);
+                await _webhhookPublisher.PublishAsync(new WebhookQueueItem()
                 {
-                    var message = JsonConvert.DeserializeObject<MessageDto>(dto.Message);
-                    if (message != null)
-                    {
-                        switch (message)
-                        {
-                            case { NotificationType: "payments" }:
-                                {
-                                    var (brokerId, clientId, walletId) = ParseDescription(message.Payment.Description);
-
-                                    if (message.Payment.Source.Type == "wire" &&
-                                        message.Payment.Status == PaymentStatus.Paid)
-                                    {
-                                        var payment = await _circlePaymentsService.GetCirclePaymentInfo(
-                                            new GetPaymentRequest
-                                            { BrokerId = DomainConstants.DefaultBroker, PaymentId = message.Payment.Id });
-
-                                        if (payment.IsSuccess)
-                                        {
-                                            var bankAccount = await _circleBankAccountsService.GetCircleBankAccountByIdOnly(
-                                            new Wallets.Grpc.Models.BankAccounts.GetClientBankAccountByIdRequest
-                                            {
-                                                BankAccountId = payment.Data.Source.Id,
-                                            });
-
-                                            var list = await _clientWalletService.GetWalletsByClient(new ()
-                                            {
-                                                ClientId = bankAccount.Data.ClientId,
-                                                BrokerId = bankAccount.Data.BrokerId,
-                                            });
-
-                                            var defaultWallet = list.Wallets.FirstOrDefault(e => e.IsDefault) ?? list.Wallets.FirstOrDefault();
-
-                                            if (defaultWallet == null)
-                                            {
-                                                _logger.LogError("Cannot found default wallet for Broker/Client: {brokerId}/{clientId}", bankAccount.Data.BrokerId, bankAccount.Data.ClientId);
-                                                throw new Exception($"Cannot found default wallet for Broker/Client: {bankAccount.Data.BrokerId}/{bankAccount.Data.ClientId}");
-                                            }
-
-                                            await _transferPublisher.PublishAsync(new SignalCircleTransfer
-                                            {
-                                                BrokerId = bankAccount.Data.BrokerId,
-                                                ClientId = bankAccount.Data.ClientId,
-                                                WalletId = defaultWallet.WalletId,
-                                                PaymentInfo = payment.Data
-                                            });
-                                        }
-                                        else
-                                        {
-                                            _logger.LogError("Unable to get payment info {id}", message.Payment.Id);
-                                        }
-                                    }
-                                    else if (brokerId != null)
-                                    {
-                                        var payment = await _circlePaymentsService.GetCirclePaymentInfo(
-                                            new GetPaymentRequest
-                                            { BrokerId = brokerId, PaymentId = message.Payment.Id });
-                                        if (payment.IsSuccess)
-                                        {
-                                            await _transferPublisher.PublishAsync(new SignalCircleTransfer
-                                            {
-                                                BrokerId = brokerId,
-                                                ClientId = clientId,
-                                                WalletId = walletId,
-                                                PaymentInfo = payment.Data
-                                            });
-                                        }
-                                        else
-                                        {
-                                            _logger.LogError("Unable to get payment info {id}", message.Payment.Id);
-                                        }
-                                    }
-
-                                    break;
-                                }
-                            case { NotificationType: "transfers" } when message.Transfer.Source.Type == "blockchain":
-                                {
-                                    //deposits
-                                    var asset = _circleAssetMapper.CircleAssetToAsset("jetwallet",
-                                        message.Transfer.Amount.Currency);
-                                    if (string.IsNullOrEmpty(asset?.AssetSymbol))
-                                    {
-                                        _logger.LogError("Unknown circle asset {asset}", message.Transfer.Amount.Currency);
-                                        return;
-                                    }
-
-                                    var chain = message.Transfer.Source.Type == "wallet"
-                                        ? message.Transfer.Destination.Chain
-                                        : message
-                                            .Transfer.Source.Chain;
-                                    var blockchain = _circleBlockchainMapper.CircleBlockchainToBlockchain("jetwallet",
-                                        chain);
-                                    if (string.IsNullOrEmpty(blockchain?.Blockchain))
-                                    {
-                                        _logger.LogError("Unknown circle blockchain {blockchain}",
-                                            chain);
-                                        return;
-                                    }
-
-                                    var addressInfo = await _walletService.GetUserByAddressAsync(new Blockchain.Wallets.Grpc.Models.UserWallets.GetUserByAddressRequest
-                                    {
-                                        Addresses = new AddressAndTag[]
-                                        {
-                                            new AddressAndTag()
-                                            {
-                                                Address = message.Transfer.Destination.Address,
-                                                Tag = null
-                                            }
-                                        }
-                                    });
-
-                                    if (addressInfo?.Error != null)
-                                    {
-                                        _logger.LogError("Error on BW side @{context}", message);
-                                        throw new Exception("Error on BW side");
-                                    }
-
-                                    if (addressInfo == null || addressInfo.Users == null || !addressInfo.Users.Any())
-                                    {
-                                        _logger.LogError("Unknown circle address {blockchain} : {address}",
-                                            chain, message.Transfer.Destination.Address);
-                                        return;
-                                    }
-
-                                    var user = addressInfo.Users.First();
-
-                                    var payment = await _circlePaymentsService.GetCircleTransferInfo(new GetPaymentRequest
-                                    { BrokerId = user.BrokerId, PaymentId = message.Transfer.Id });
-                                    if (payment.IsSuccess)
-                                    {
-                                        await _transferPublisher.PublishAsync(new SignalCircleTransfer
-                                        {
-                                            BrokerId = user.BrokerId,
-                                            ClientId = user.ClientId,
-                                            WalletId = user.WalletId,
-                                            PaymentInfo = payment.Data
-                                        });
-                                    }
-                                    else
-                                    {
-                                        _logger.LogError("Unable to get payment info {id}", message.Payment.Id);
-                                    }
-
-                                    break;
-                                }
-                            case { NotificationType: "transfers" } when message.Transfer.Source.Type == "wallet":
-                                {
-                                    //withdrawals
-                                    var payment = await _circlePaymentsService.GetCircleTransferInfo(new GetPaymentRequest
-                                    { BrokerId = "jetwallet", PaymentId = message.Transfer.Id });
-                                    if (payment.IsSuccess)
-                                    {
-                                        await _transferPublisher.PublishAsync(new SignalCircleTransfer
-                                        {
-                                            PaymentInfo = payment.Data
-                                        });
-                                    }
-                                    else
-                                    {
-                                        _logger.LogError("Unable to get payment info {id}", message.Payment.Id);
-                                    }
-
-                                    break;
-                                }
-                            default:
-                                _logger.LogInformation("{type} message are not supported", message.NotificationType);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Empty message");
-                    }
-                }
-
-                _logger.LogInformation("Message from Circle: {message}", JsonConvert.SerializeObject(dto));
+                    Data = body
+                });
             }
 
             context.Response.StatusCode = 200;
-        }
-
-        public (string, string, string) ParseDescription(string description)
-        {
-            if (string.IsNullOrEmpty(description))
-                return (null, null, null);
-
-            var prm = description.Split("|-|");
-
-            if (prm.Length != 3)
-                return (null, null, null);
-
-            if (string.IsNullOrEmpty(prm[0]) || string.IsNullOrEmpty(prm[1]) || string.IsNullOrEmpty(prm[2]))
-                return (null, null, null);
-
-            return (prm[0], prm[1], prm[2]);
         }
 
         public class NotificationDto

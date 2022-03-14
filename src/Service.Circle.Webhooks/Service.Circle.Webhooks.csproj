@@ -43,6 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Service.Circle.Webhook.ServiceBus\Service.Circle.Webhook.ServiceBus.csproj" />
     <ProjectReference Include="..\Service.Circle.Webhooks.Domain\Service.Circle.Webhooks.Domain.csproj" />
     <ProjectReference Include="..\Service.Circle.Webhooks.Grpc\Service.Circle.Webhooks.Grpc.csproj" />
   </ItemGroup>

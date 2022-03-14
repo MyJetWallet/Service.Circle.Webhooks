@@ -7,6 +7,7 @@ using Service.Bitgo.DepositDetector.Client;
 using Service.Blockchain.Wallets.Client;
 using Service.Circle.Signer.Client;
 using Service.Circle.Wallets.Client;
+using Service.Circle.Webhook.ServiceBus;
 using Service.Circle.Webhooks.Domain.Models;
 using Service.ClientWallets.Client;
 
@@ -23,7 +24,17 @@ namespace Service.Circle.Webhooks.Modules
             builder
                 .RegisterMyServiceBusPublisher<SignalCircleTransfer>(serviceBusClient,
                     SignalCircleTransfer.ServiceBusTopicName, true);
-            
+
+            builder
+               .RegisterMyServiceBusPublisher<WebhookQueueItem>(
+                   serviceBusClient,
+                   Topics.CircleWebhookInternalTopic, 
+                   true);
+
+            builder.RegisterMyServiceBusSubscriberSingle<WebhookQueueItem>(serviceBusClient,
+                Topics.CircleWebhookInternalTopic,
+                "service-circle-webhook", MyServiceBus.Abstractions.TopicQueueType.Permanent);
+
             var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
             
             builder.RegisterCirclePaymentsClient(Program.Settings.CircleSignerGrpcServiceUrl); 
