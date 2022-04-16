@@ -28,7 +28,7 @@
     <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="2.1.6" />
     <PackageReference Include="MyJetWallet.Sdk.Service" Version="2.1.7" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.2" />
-    <PackageReference Include="MyJetWallet.Sdk.WalletApi" Version="3.0.2" />
+    <PackageReference Include="MyJetWallet.Sdk.WalletApi" Version="3.0.4" />
     <PackageReference Include="MyJetWallet.Service.Bitgo.DepositDetector.Client" Version="2.2.5" />
     <PackageReference Include="MyJetWallet.Service.Blockchain.Wallets.Client" Version="1.5.0" />
     <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.5.0" />
