@@ -38,7 +38,7 @@ namespace Service.Circle.Webhooks.Modules
                 "service-circle-webhook", 
                 MyServiceBus.Abstractions.TopicQueueType.Permanent);
 
-            var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
+            var myNoSqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
             
             builder.RegisterCirclePaymentsClient(Program.Settings.CircleSignerGrpcServiceUrl); 
             builder.RegisterBitgoDepositAddressClient(Program.Settings.BitgoDepositServiceGrpcUrl, myNoSqlClient);
