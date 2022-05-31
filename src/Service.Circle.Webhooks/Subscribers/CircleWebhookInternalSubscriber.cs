@@ -30,7 +30,6 @@ namespace Service.Circle.Webhooks.Subscribers
         private readonly Service.Blockchain.Wallets.Grpc.IWalletService _walletService;
         private readonly Wallets.Grpc.ICircleBankAccountsService _circleBankAccountsService;
         private readonly IClientWalletService _clientWalletService;
-        private readonly ICircleCardsService _circleCardsService;
 
         public CircleWebhookInternalSubscriber(
             ILogger<CircleWebhookInternalSubscriber> logger,
@@ -42,8 +41,7 @@ namespace Service.Circle.Webhooks.Subscribers
             ICircleAssetMapper circleAssetMapper,
             Service.Blockchain.Wallets.Grpc.IWalletService walletService,
             Wallets.Grpc.ICircleBankAccountsService circleBankAccountsService,
-            IClientWalletService clientWalletService,
-            ICircleCardsService circleCardsService)
+            IClientWalletService clientWalletService)
         {
             subscriber.Subscribe(HandleSignal);
             _logger = logger;
@@ -55,7 +53,6 @@ namespace Service.Circle.Webhooks.Subscribers
             _walletService = walletService;
             _circleBankAccountsService = circleBankAccountsService;
             _clientWalletService = clientWalletService;
-            _circleCardsService = circleCardsService;
         }
 
         private async ValueTask HandleSignal(WebhookQueueItem webhook)
