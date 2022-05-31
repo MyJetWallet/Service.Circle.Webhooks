@@ -145,6 +145,10 @@ namespace Service.Circle.Webhooks.Services
             [DataMember(Order = 3)]
             public RiskEvaluationInfo RiskEvaluationInfo { get; set; }
 
+            [JsonProperty("status")]
+            [DataMember(Order = 4)]
+            public string Status { get; set; }
+
 
         }
 

@@ -233,9 +233,7 @@ namespace Service.Circle.Webhooks.Subscribers
                             case { NotificationType: "cards" }:
                                 {
                                     //withdrawals
-                                    bool isVerified = message.Card.RiskEvaluationInfo.Decision == "approved" &&
-                                        message.Card.Verification.Cvv == "pass" && message.Card.Verification.Avs == "pass";
-
+                                    bool isVerified = message.Card.Status == "complete";
                                     await _cardPublisher.PublishAsync(new SignalCircleCard
                                     {
                                         CircleCardId = message.Card.Id,
