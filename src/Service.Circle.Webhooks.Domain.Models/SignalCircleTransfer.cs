@@ -7,7 +7,7 @@ namespace Service.Circle.Webhooks.Domain.Models
     public class SignalCircleTransfer
     {
         public const string ServiceBusTopicName = "circle-transfer-signal";
-        
+
         [DataMember(Order = 1)] public string BrokerId { get; set; }
         [DataMember(Order = 2)] public string ClientId { get; set; }
         [DataMember(Order = 3)] public string WalletId { get; set; }

@@ -27,6 +27,10 @@ namespace Service.Circle.Webhooks.Modules
                     SignalCircleTransfer.ServiceBusTopicName, true);
 
             builder
+                .RegisterMyServiceBusPublisher<SignalCircleCard>(serviceBusClient,
+                    SignalCircleCard.ServiceBusTopicName, true);
+
+            builder
                .RegisterMyServiceBusPublisher<WebhookQueueItem>(
                    serviceBusClient,
                    Topics.CircleWebhookInternalTopic, 

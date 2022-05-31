@@ -24,32 +24,38 @@ namespace Service.Circle.Webhooks.Subscribers
         private readonly ILogger<CircleWebhookInternalSubscriber> _logger;
         private readonly ICirclePaymentsService _circlePaymentsService;
         private readonly IServiceBusPublisher<SignalCircleTransfer> _transferPublisher;
+        private readonly IServiceBusPublisher<SignalCircleCard> _cardPublisher;
         private readonly ICircleBlockchainMapper _circleBlockchainMapper;
         private readonly ICircleAssetMapper _circleAssetMapper;
         private readonly Service.Blockchain.Wallets.Grpc.IWalletService _walletService;
         private readonly Wallets.Grpc.ICircleBankAccountsService _circleBankAccountsService;
         private readonly IClientWalletService _clientWalletService;
+        private readonly ICircleCardsService _circleCardsService;
 
         public CircleWebhookInternalSubscriber(
             ILogger<CircleWebhookInternalSubscriber> logger,
             ISubscriber<WebhookQueueItem> subscriber,
             ICirclePaymentsService circlePaymentsService,
             IServiceBusPublisher<SignalCircleTransfer> transferPublisher,
+            IServiceBusPublisher<SignalCircleCard> cardPublisher,
             ICircleBlockchainMapper circleBlockchainMapper,
             ICircleAssetMapper circleAssetMapper,
             Service.Blockchain.Wallets.Grpc.IWalletService walletService,
             Wallets.Grpc.ICircleBankAccountsService circleBankAccountsService,
-            IClientWalletService clientWalletService)
+            IClientWalletService clientWalletService,
+            ICircleCardsService circleCardsService)
         {
             subscriber.Subscribe(HandleSignal);
             _logger = logger;
             _circlePaymentsService = circlePaymentsService;
             _transferPublisher = transferPublisher;
+            _cardPublisher = cardPublisher;
             _circleBlockchainMapper = circleBlockchainMapper;
             _circleAssetMapper = circleAssetMapper;
             _walletService = walletService;
             _circleBankAccountsService = circleBankAccountsService;
             _clientWalletService = clientWalletService;
+            _circleCardsService = circleCardsService;
         }
 
         private async ValueTask HandleSignal(WebhookQueueItem webhook)
@@ -224,6 +230,20 @@ namespace Service.Circle.Webhooks.Subscribers
                                     {
                                         _logger.LogError("Unable to get payment info {id}", message.Payment.Id);
                                     }
+
+                                    break;
+                                }
+                            case { NotificationType: "cards" }:
+                                {
+                                    //withdrawals
+                                    bool isVerified = message.Card.RiskEvaluationInfo.Decision == "approved" &&
+                                        message.Card.Verification.Cvv == "pass" && message.Card.Verification.Avs == "pass";
+
+                                    await _cardPublisher.PublishAsync(new SignalCircleCard
+                                    {
+                                        CircleCardId = message.Card.Id,
+                                        Verified = isVerified
+                                    });
 
                                     break;
                                 }

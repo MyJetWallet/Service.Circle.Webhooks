@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -125,6 +126,50 @@ namespace Service.Circle.Webhooks.Services
             [JsonProperty("version")] public int Version { get; set; }
             [JsonProperty("payment")] public PaymentInfo Payment { get; set; }
             [JsonProperty("transfer")] public PaymentInfo Transfer { get; set; }
+
+            [JsonProperty("card")] public CardInfo Card { get; set; }
+        }
+
+        [DataContract]
+        public class CardInfo
+        {
+            [JsonProperty("id")]
+            [DataMember(Order = 1)]
+            public string Id { get; set; }
+
+            [JsonProperty("verification")]
+            [DataMember(Order = 2)]
+            public VerificationInfo Verification { get; set; }
+
+            [JsonProperty("riskEvaluation")]
+            [DataMember(Order = 3)]
+            public RiskEvaluationInfo RiskEvaluationInfo { get; set; }
+
+
+        }
+
+        [DataContract]
+        public class VerificationInfo
+        {
+            [JsonProperty("cvv")]
+            [DataMember(Order = 1)]
+            public string Cvv { get; set; }
+
+            [JsonProperty("avs")]
+            [DataMember(Order = 2)]
+            public string Avs { get; set; }
+        }
+
+        [DataContract]
+        public class RiskEvaluationInfo
+        {
+            [JsonProperty("decision")]
+            [DataMember(Order = 1)]
+            public string Decision { get; set; }
+
+            [JsonProperty("reason")]
+            [DataMember(Order = 2)]
+            public string Reason { get; set; }
         }
     }
 }
