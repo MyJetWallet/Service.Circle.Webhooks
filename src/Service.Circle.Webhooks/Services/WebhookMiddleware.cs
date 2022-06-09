@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Circle.Models.ChargeBacks;
 using MyJetWallet.Circle.Models.Payments;
 using MyJetWallet.Circle.Settings.Services;
 using MyJetWallet.Domain;
@@ -128,6 +129,7 @@ namespace Service.Circle.Webhooks.Services
             [JsonProperty("transfer")] public PaymentInfo Transfer { get; set; }
 
             [JsonProperty("card")] public CardInfo Card { get; set; }
+            [JsonProperty("chargeback")] public Chargeback Chargeback { get; set; }
         }
 
         [DataContract]

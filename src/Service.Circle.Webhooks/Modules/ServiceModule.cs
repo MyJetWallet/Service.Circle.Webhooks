@@ -31,6 +31,10 @@ namespace Service.Circle.Webhooks.Modules
                     SignalCircleCard.ServiceBusTopicName, true);
 
             builder
+                .RegisterMyServiceBusPublisher<SignalCircleChargeback>(serviceBusClient,
+                    SignalCircleChargeback.ServiceBusTopicName, true);
+
+            builder
                .RegisterMyServiceBusPublisher<WebhookQueueItem>(
                    serviceBusClient,
                    Topics.CircleWebhookInternalTopic, 

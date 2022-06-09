@@ -25,6 +25,7 @@ namespace Service.Circle.Webhooks.Subscribers
         private readonly ICirclePaymentsService _circlePaymentsService;
         private readonly IServiceBusPublisher<SignalCircleTransfer> _transferPublisher;
         private readonly IServiceBusPublisher<SignalCircleCard> _cardPublisher;
+        private readonly IServiceBusPublisher<SignalCircleChargeback> _chargebackPublisher;
         private readonly ICircleBlockchainMapper _circleBlockchainMapper;
         private readonly ICircleAssetMapper _circleAssetMapper;
         private readonly Service.Blockchain.Wallets.Grpc.IWalletService _walletService;
@@ -37,6 +38,7 @@ namespace Service.Circle.Webhooks.Subscribers
             ICirclePaymentsService circlePaymentsService,
             IServiceBusPublisher<SignalCircleTransfer> transferPublisher,
             IServiceBusPublisher<SignalCircleCard> cardPublisher,
+            IServiceBusPublisher<SignalCircleChargeback> chargebackPublisher,
             ICircleBlockchainMapper circleBlockchainMapper,
             ICircleAssetMapper circleAssetMapper,
             Service.Blockchain.Wallets.Grpc.IWalletService walletService,
@@ -53,6 +55,7 @@ namespace Service.Circle.Webhooks.Subscribers
             _walletService = walletService;
             _circleBankAccountsService = circleBankAccountsService;
             _clientWalletService = clientWalletService;
+            _chargebackPublisher = chargebackPublisher;
         }
 
         private async ValueTask HandleSignal(WebhookQueueItem webhook)
@@ -238,6 +241,33 @@ namespace Service.Circle.Webhooks.Subscribers
                                     {
                                         CircleCardId = message.Card.Id,
                                         Verified = isVerified
+                                    });
+
+                                    break;
+                                }
+                            case { NotificationType: "chargebacks" }:
+                                {
+                                    var payment = await _circlePaymentsService.GetCirclePaymentInfo(
+                                            new GetPaymentRequest
+                                            { 
+                                                BrokerId = DomainConstants.DefaultBroker, 
+                                                PaymentId = message.Chargeback.PaymentId 
+                                            });
+
+                                    if (payment.IsSuccess && payment.Data == null)
+                                    {
+                                        _logger.LogInformation("Chargeback has no payment {message}", dto.Message);
+                                        break;
+                                    }
+
+                                    var (brokerId, clientId, walletId) = ParseDescription(payment.Data.Description);
+
+                                    await _chargebackPublisher.PublishAsync(new SignalCircleChargeback
+                                    {
+                                        Chargeback = message.Chargeback,
+                                        BrokerId = brokerId,
+                                        ClientId = clientId,
+                                        WalletId = walletId,
                                     });
 
                                     break;
