@@ -19,5 +19,7 @@ namespace Service.Circle.Webhooks.Domain.Models
         [DataMember(Order = 7)] public CardFundingType FundingType { get; set; }
         [DataMember(Order = 8)] public string IssuerCountry { get; set; }
         [DataMember(Order = 9)] public RiskEvaluation RiskEvaluation { get; set; }
+
+        [DataMember(Order = 10)] public DateTime UpdateDate { get; set; }
     }
 }

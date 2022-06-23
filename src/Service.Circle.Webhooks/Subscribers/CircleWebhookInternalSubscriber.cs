@@ -263,6 +263,7 @@ namespace Service.Circle.Webhooks.Subscribers
                                         FundingType = circleCard.Data.FundingType,
                                         IssuerCountry = circleCard.Data.IssuerCountry,
                                         RiskEvaluation = circleCard.Data.RiskEvaluation,
+                                        UpdateDate = circleCard.Data.UpdateDate,
                                     });
 
                                     break;

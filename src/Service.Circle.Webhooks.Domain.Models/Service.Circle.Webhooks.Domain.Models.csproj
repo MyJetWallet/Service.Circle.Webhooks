@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MyJetWallet.Circle" Version="1.10.1" />
-    <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.10.0" />
+    <PackageReference Include="MyJetWallet.Circle" Version="1.11.1" />
+    <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.11.0" />
   </ItemGroup>
 
 </Project>
