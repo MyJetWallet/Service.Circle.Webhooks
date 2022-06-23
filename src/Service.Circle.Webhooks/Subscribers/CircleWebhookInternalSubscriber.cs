@@ -31,6 +31,7 @@ namespace Service.Circle.Webhooks.Subscribers
         private readonly Service.Blockchain.Wallets.Grpc.IWalletService _walletService;
         private readonly Wallets.Grpc.ICircleBankAccountsService _circleBankAccountsService;
         private readonly IClientWalletService _clientWalletService;
+        private readonly ICircleCardsService _circleCardsService;
 
         public CircleWebhookInternalSubscriber(
             ILogger<CircleWebhookInternalSubscriber> logger,
@@ -43,7 +44,8 @@ namespace Service.Circle.Webhooks.Subscribers
             ICircleAssetMapper circleAssetMapper,
             Service.Blockchain.Wallets.Grpc.IWalletService walletService,
             Wallets.Grpc.ICircleBankAccountsService circleBankAccountsService,
-            IClientWalletService clientWalletService)
+            IClientWalletService clientWalletService,
+            ICircleCardsService circleCardsService)
         {
             subscriber.Subscribe(HandleSignal);
             _logger = logger;
@@ -55,6 +57,7 @@ namespace Service.Circle.Webhooks.Subscribers
             _walletService = walletService;
             _circleBankAccountsService = circleBankAccountsService;
             _clientWalletService = clientWalletService;
+            this._circleCardsService = circleCardsService;
             _chargebackPublisher = chargebackPublisher;
         }
 
@@ -237,10 +240,23 @@ namespace Service.Circle.Webhooks.Subscribers
                                 {
                                     //withdrawals
                                     bool isVerified = message.Card.Status == "complete";
+                                    var circleCard = await _circleCardsService.GetCircleCard(new GetCardRequest
+                                    {
+                                        BrokerId = "jetwallet",
+                                        CardId = message.Card.Id,
+                                    });
+
+                                    if (!circleCard.IsSuccess)
+                                        throw new Exception($"Can'get card with id {message.Card.Id}");
+
+                                    if (circleCard.Data == null)
+                                        break;
+
                                     await _cardPublisher.PublishAsync(new SignalCircleCard
                                     {
                                         CircleCardId = message.Card.Id,
-                                        Verified = isVerified
+                                        Verified = isVerified,
+                                        ci
                                     });
 
                                     break;
@@ -249,9 +265,9 @@ namespace Service.Circle.Webhooks.Subscribers
                                 {
                                     var payment = await _circlePaymentsService.GetCirclePaymentInfo(
                                             new GetPaymentRequest
-                                            { 
-                                                BrokerId = DomainConstants.DefaultBroker, 
-                                                PaymentId = message.Chargeback.PaymentId 
+                                            {
+                                                BrokerId = DomainConstants.DefaultBroker,
+                                                PaymentId = message.Chargeback.PaymentId
                                             });
 
                                     if (payment.IsSuccess && payment.Data == null)

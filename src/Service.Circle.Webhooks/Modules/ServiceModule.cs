@@ -48,7 +48,8 @@ namespace Service.Circle.Webhooks.Modules
 
             var myNoSqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
             
-            builder.RegisterCirclePaymentsClient(Program.Settings.CircleSignerGrpcServiceUrl); 
+            builder.RegisterCirclePaymentsClient(Program.Settings.CircleSignerGrpcServiceUrl);
+            builder.RegisterCircleCardsClient(Program.Settings.CircleSignerGrpcServiceUrl);
             builder.RegisterBitgoDepositAddressClient(Program.Settings.BitgoDepositServiceGrpcUrl, myNoSqlClient);
             builder.RegisterCircleSettingsReader(myNoSqlClient);
             builder.RegisterBlockchainWalletsClient(Program.Settings.BlockchainWalletsGrpcServiceUrl, myNoSqlClient);
