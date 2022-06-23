@@ -251,12 +251,18 @@ namespace Service.Circle.Webhooks.Subscribers
 
                                     if (circleCard.Data == null)
                                         break;
-
+                                    
                                     await _cardPublisher.PublishAsync(new SignalCircleCard
                                     {
                                         CircleCardId = message.Card.Id,
                                         Verified = isVerified,
-                                        ci
+                                        Status = circleCard.Data.Status,
+                                        ErrorCode = circleCard.Data.ErrorCode,
+                                        Bin = circleCard.Data.Bin,
+                                        Fingerprint = circleCard.Data.Fingerprint,
+                                        FundingType = circleCard.Data.FundingType,
+                                        IssuerCountry = circleCard.Data.IssuerCountry,
+                                        RiskEvaluation = circleCard.Data.RiskEvaluation,
                                     });
 
                                     break;
