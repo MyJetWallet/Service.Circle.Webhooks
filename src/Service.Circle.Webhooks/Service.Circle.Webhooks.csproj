@@ -32,7 +32,7 @@
     <PackageReference Include="MyJetWallet.Service.Bitgo.DepositDetector.Client" Version="2.3.0" />
     <PackageReference Include="MyJetWallet.Service.Blockchain.Wallets.Client" Version="1.6.0" />
     <PackageReference Include="MyJetWallet.Service.Circle.Signer.Client" Version="2.11.0" />
-    <PackageReference Include="MyJetWallet.Service.Circle.Wallets.Client" Version="2.5.5" />
+    <PackageReference Include="MyJetWallet.Service.Circle.Wallets.Client" Version="2.5.6" />
     <PackageReference Include="MyJetWallet.Service.ClientWallets.Client" Version="1.4.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
