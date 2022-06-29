@@ -24,6 +24,7 @@ namespace Service.Circle.Webhooks.Subscribers
         private readonly ILogger<CircleWebhookInternalSubscriber> _logger;
         private readonly ICirclePaymentsService _circlePaymentsService;
         private readonly IServiceBusPublisher<SignalCircleTransfer> _transferPublisher;
+        private readonly IServiceBusPublisher<SignalCirclePayout> _payoutPublisher;
         private readonly IServiceBusPublisher<SignalCircleCard> _cardPublisher;
         private readonly IServiceBusPublisher<SignalCircleChargeback> _chargebackPublisher;
         private readonly ICircleBlockchainMapper _circleBlockchainMapper;
@@ -32,12 +33,14 @@ namespace Service.Circle.Webhooks.Subscribers
         private readonly Wallets.Grpc.ICircleBankAccountsService _circleBankAccountsService;
         private readonly IClientWalletService _clientWalletService;
         private readonly ICircleCardsService _circleCardsService;
+        private readonly ICirclePayoutsService _circlePayoutsService;
 
         public CircleWebhookInternalSubscriber(
             ILogger<CircleWebhookInternalSubscriber> logger,
             ISubscriber<WebhookQueueItem> subscriber,
             ICirclePaymentsService circlePaymentsService,
             IServiceBusPublisher<SignalCircleTransfer> transferPublisher,
+            IServiceBusPublisher<SignalCirclePayout> payoutPublisher,
             IServiceBusPublisher<SignalCircleCard> cardPublisher,
             IServiceBusPublisher<SignalCircleChargeback> chargebackPublisher,
             ICircleBlockchainMapper circleBlockchainMapper,
@@ -45,19 +48,22 @@ namespace Service.Circle.Webhooks.Subscribers
             Service.Blockchain.Wallets.Grpc.IWalletService walletService,
             Wallets.Grpc.ICircleBankAccountsService circleBankAccountsService,
             IClientWalletService clientWalletService,
-            ICircleCardsService circleCardsService)
+            ICircleCardsService circleCardsService,
+            ICirclePayoutsService circlePayoutsService)
         {
             subscriber.Subscribe(HandleSignal);
             _logger = logger;
             _circlePaymentsService = circlePaymentsService;
             _transferPublisher = transferPublisher;
+            this._payoutPublisher = payoutPublisher;
             _cardPublisher = cardPublisher;
             _circleBlockchainMapper = circleBlockchainMapper;
             _circleAssetMapper = circleAssetMapper;
             _walletService = walletService;
             _circleBankAccountsService = circleBankAccountsService;
             _clientWalletService = clientWalletService;
-            this._circleCardsService = circleCardsService;
+            _circleCardsService = circleCardsService;
+            _circlePayoutsService = circlePayoutsService;
             _chargebackPublisher = chargebackPublisher;
         }
 
@@ -291,6 +297,33 @@ namespace Service.Circle.Webhooks.Subscribers
                                         BrokerId = brokerId,
                                         ClientId = clientId,
                                         WalletId = walletId,
+                                    });
+
+                                    break;
+                                }
+                            case { NotificationType: "payouts" }:
+                                {
+                                    var payout = await _circlePayoutsService.GetCirclePayoutInfo(
+                                            new ()
+                                            {
+                                                BrokerId = DomainConstants.DefaultBroker,
+                                                PayoutId = message.Payout.Id
+                                            });
+
+                                    if (!payout.IsSuccess)
+                                    {
+                                        throw new Exception($"Can' get payout {dto.Message}");
+                                    }
+
+                                    if (payout.IsSuccess && payout.Data == null)
+                                    {
+                                        _logger.LogInformation("Payout has no data {message}", dto.Message);
+                                        break;
+                                    }
+
+                                    await _payoutPublisher.PublishAsync(new SignalCirclePayout
+                                    {
+                                        PayoutInfo = message.Payout,
                                     });
 
                                     break;

@@ -27,6 +27,10 @@ namespace Service.Circle.Webhooks.Modules
                     SignalCircleTransfer.ServiceBusTopicName, true);
 
             builder
+                .RegisterMyServiceBusPublisher<SignalCirclePayout>(serviceBusClient,
+                    SignalCirclePayout.ServiceBusTopicName, true);
+
+            builder
                 .RegisterMyServiceBusPublisher<SignalCircleCard>(serviceBusClient,
                     SignalCircleCard.ServiceBusTopicName, true);
 
@@ -49,6 +53,7 @@ namespace Service.Circle.Webhooks.Modules
             var myNoSqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
             
             builder.RegisterCirclePaymentsClient(Program.Settings.CircleSignerGrpcServiceUrl);
+            builder.RegisterCirclePayoutClient(Program.Settings.CircleSignerGrpcServiceUrl);
             builder.RegisterCircleCardsClient(Program.Settings.CircleSignerGrpcServiceUrl);
             builder.RegisterBitgoDepositAddressClient(Program.Settings.BitgoDepositServiceGrpcUrl, myNoSqlClient);
             builder.RegisterCircleSettingsReader(myNoSqlClient);
