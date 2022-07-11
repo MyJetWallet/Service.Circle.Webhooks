@@ -135,6 +135,13 @@ namespace Service.Circle.Webhooks.Subscribers
                                         var payment = await _circlePaymentsService.GetCirclePaymentInfo(
                                             new GetPaymentRequest
                                             { BrokerId = brokerId, PaymentId = message.Payment.Id });
+
+                                        if (payment.Data != null)
+                                        {
+                                            _logger.LogInformation("GetCirclePaymentInfo payment info {paymentInfo}",
+                                                Newtonsoft.Json.JsonConvert.SerializeObject(payment.Data));
+                                        }
+
                                         if (payment.IsSuccess)
                                         {
                                             await _transferPublisher.PublishAsync(new SignalCircleTransfer
